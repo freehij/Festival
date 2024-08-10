@@ -26,13 +26,13 @@ if [ "$PHP_BINARY" == "" ]; then
 	elif [[ ! -z $(type php) ]]; then
 		PHP_BINARY=$(type -p php)
 	else
-		echo​ ​"​Couldn't find a PHP binary in system PATH or ​$PWD​/bin/php7/bin​"
+		echo​ ​"​Couldn't find a PHP binary in system PATH or ​$PWD​/bin/php5/bin​"
 		exit 1
 	fi
 fi
 
 if [ "$POCKETMINE_FILE" == "" ]; then
-	if [ -f ./PocketMine-MP.php ]; then
+	if [ -f ./src/pocketmine/PocketMine.php ]; then
 		POCKETMINE_FILE="./src/pocketmine/PocketMine.php"
 	else
 		echo​ ​"​PocketMine.php not found​" 
