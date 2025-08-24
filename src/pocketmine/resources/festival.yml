@@ -16,3 +16,6 @@ other:
  #Discord webhook link where chat messages will be send to. Empty for none.
  discord-webhook-link: ""
  discord-webhook-name: "Festival Chat"
+
+ #Built-in Anti-InstaBreak Mechanism
+ enable-break-time-validation: true

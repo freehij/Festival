@@ -190,6 +190,7 @@ class Server{
 	public static $enableDiscordWebhook = false;
 	public static $discordWebhookLink = "";
 	public static $webhookName = "Festival Chat";
+	public static $breakTimeValidation = true;
 
 	/** @var Server */
 	private static $instance = \null;
@@ -1681,6 +1682,7 @@ class Server{
 		Server::$enableDiscordWebhook = is_string($url) && strlen($url) > 0;
 		Server::$discordWebhookLink = $url;
 		Server::$webhookName = $this->getExtraProperty("other.discord-webhook-name");
+		Server::$breakTimeValidation = $this->getExtraProperty("other.enable-break-time-validation", Server::$breakTimeValidation);
 		NetherReactor::$enableReactor = $this->getExtraProperty("level-improvements.enable-reactor", false);
 		Server::$mainmenuinfo = $this->getExtraProperty("network-improvements.main-menu-info", MINECRAFT_VERSION_NETWORK);
 		$this->forceLanguage = $this->getProperty("settings.force-language", \false);
