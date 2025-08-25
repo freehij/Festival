@@ -873,10 +873,10 @@ class Item{
 			return $blocks;
 		}else{
 			$b = \explode(":", \str_replace(" ", "_", \trim($str)));
-			if(!isset($b[1])){
+			if(!isset($b[1]) || !is_numeric($b[1])){
 				$meta = 0;
 			}else{
-				$meta = $b[1] & 0xFFFF;
+				$meta = ((int)$b[1]) & 0xFFFF;
 			}
 
 			if(\defined(Item::class . "::" . \strtoupper($b[0]))){
@@ -884,8 +884,8 @@ class Item{
 				if($item->getId() === self::AIR and \strtoupper($b[0]) !== "AIR"){
 					$item = self::get($b[0] & 0xFFFF, $meta);
 				}
-			}else if(is_int($b[0])){
-				$item = self::get($b[0] & 0xFFFF, $meta);
+			}else if(is_numeric($b[0])){
+				$item = self::get(((int)$b[0]) & 0xFFFF, $meta);
 			}else{
 				$item = self::get(0, 0);
 			}
