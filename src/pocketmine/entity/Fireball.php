@@ -44,7 +44,8 @@ class Fireball extends Projectile{
 
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();
-		$pk->type = Fireball::NETWORK_ID;
+		//0.11 cannot spawn 94(real entity id) from serverside => use snowball id as a replacement
+		$pk->type = Snowball::NETWORK_ID;
 		$pk->eid = $this->getId();
 		$pk->x = $this->x;
 		$pk->y = $this->y;
