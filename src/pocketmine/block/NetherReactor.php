@@ -68,7 +68,7 @@ class NetherReactor extends Solid{
 	}
 	
 	public function onActivate(Item $item, Player $player = \null){
-		if($item->isSword() && $this->isCorrect($this->x,$this->y,$this->z) && NetherReactor::$enableReactor){
+		if($this->meta == 0 && $this->isCorrect($this->x,$this->y,$this->z) && NetherReactor::$enableReactor){
 			if($this->y > 101){
 				//TODO send msg to a player
 				return;
