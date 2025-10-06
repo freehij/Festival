@@ -1,23 +1,6 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
+
 
 namespace pocketmine\lang;
 
@@ -54,27 +37,8 @@ class BaseLang{
 	}
 
 	protected function loadLang($path, array &$d){
-		if(\file_exists($path) and \strlen($content = \file_get_contents($path)) > 0){
-			foreach(\explode("\n", $content) as $line){
-				$line = \trim($line);
-				if($line === "" or $line[0] === "#"){
-					continue;
-				}
-
-				$t = \explode("=", $line);
-				if(\count($t) < 2){
-					continue;
-				}
-
-				$key = \trim(\array_shift($t));
-				$value = \trim(\implode("=", $t));
-
-				if($value === ""){
-					continue;
-				}
-
-				$d[$key] = $value;
-			}
+		if(file_exists($path) and strlen(file_get_contents($path)) > 0){
+			$d = parse_ini_file($path, false, INI_SCANNER_RAW);
 		}
 	}
 

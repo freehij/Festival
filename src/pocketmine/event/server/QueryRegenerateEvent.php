@@ -1,23 +1,6 @@
 <?php
 
-/**
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link   http://www.pocketmine.net/
- *
- *
- */
+
 
 namespace pocketmine\event\server;
 
@@ -46,7 +29,7 @@ class QueryRegenerateEvent extends ServerEvent{
 	private $whitelist;
 	private $port;
 	private $ip;
-
+	private $tps;
 	private $extraData = [];
 
 
@@ -71,7 +54,15 @@ class QueryRegenerateEvent extends ServerEvent{
 		$this->whitelist = $server->hasWhitelist() ? "on" : "off";
 		$this->port = $server->getPort();
 		$this->ip = $server->getIp();
+		$this->tps = $server->getTicksPerSecond();
+	}
 
+	public function getTPS(){
+		return $this->tps;
+	}
+
+	public function setTPS($tps){
+		$this->tps = $tps;
 	}
 
 	/**
@@ -194,7 +185,8 @@ class QueryRegenerateEvent extends ServerEvent{
 			"maxplayers" => $this->maxPlayers,
 			"whitelist" => $this->whitelist,
 			"hostip" => $this->ip,
-			"hostport" => $this->port
+			"hostport" => $this->port,
+			"tps" => $this->tps
 		];
 
 		foreach($KVdata as $key => $value){

@@ -1,24 +1,5 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
 /**
  * All the Item classes
  */
@@ -328,7 +309,7 @@ class Item{
 	const SLIMEBALL = 341;
 	const EGG = 344;
 	const COMPASS = 345;
-	//const FISHING_ROD = 346;
+	const FISHING_ROD = 346;
 	const CLOCK = 347;
 	const GLOWSTONE_DUST = 348;
 	const RAW_FISH = 349;
@@ -462,6 +443,7 @@ class Item{
 			self::$list[self::FLINT_STEEL] = FlintSteel::class;
 			self::$list[self::SHEARS] = Shears::class;
 			self::$list[self::BOW] = Bow::class;
+            self::$list[self::FISHING_ROD] = FishingRod::class;
 
 			self::$list[self::RAW_FISH] = Fish::class;
 			self::$list[self::COOKED_FISH] = CookedFish::class;
@@ -712,7 +694,7 @@ class Item{
 		self::addCreativeItem(Item::get(Item::BUCKET, 10));
 		self::addCreativeItem(Item::get(Item::TNT, 0));
 		self::addCreativeItem(Item::get(Item::BOW, 0));
-		//self::addCreativeItem(Item::get(Item::FISHING_ROD, 0));
+		self::addCreativeItem(Item::get(Item::FISHING_ROD, 0));
 		self::addCreativeItem(Item::get(Item::FLINT_AND_STEEL, 0));
 		self::addCreativeItem(Item::get(Item::SHEARS, 0));
 		self::addCreativeItem(Item::get(Item::CLOCK, 0));
@@ -867,6 +849,21 @@ class Item{
 		}
 	}
 
+	public static function strToIdMeta($str){
+		$b = \explode(":", \str_replace(" ", "_", \trim($str)));
+		$meta = !isset($b[1]) ? 0 : ($b[1] & 0xFFFF);
+		if(\defined(Item::class . "::" . \strtoupper($b[0]))){
+			$item = self::get(\constant(Item::class . "::" . \strtoupper($b[0])), $meta);
+			if($item->getId() === self::AIR and \strtoupper($b[0]) !== "AIR"){
+				return [0, $meta];
+			}
+			return [$item->getId(), $meta];
+		}else{
+			return [(int)($b[0] & 0xFFFF), $meta];
+		}
+		
+	}
+
 	public static function fromString($str, $multiple = \false){
 		if($multiple === \true){
 			$blocks = [];
@@ -877,10 +874,10 @@ class Item{
 			return $blocks;
 		}else{
 			$b = \explode(":", \str_replace(" ", "_", \trim($str)));
-			if(!isset($b[1])){
+			if(!isset($b[1]) || !is_numeric($b[1])){
 				$meta = 0;
 			}else{
-				$meta = $b[1] & 0xFFFF;
+				$meta = ((int)$b[1]) & 0xFFFF;
 			}
 
 			if(\defined(Item::class . "::" . \strtoupper($b[0]))){
@@ -888,8 +885,10 @@ class Item{
 				if($item->getId() === self::AIR and \strtoupper($b[0]) !== "AIR"){
 					$item = self::get($b[0] & 0xFFFF, $meta);
 				}
+			}else if(is_numeric($b[0])){
+				$item = self::get(((int)$b[0]) & 0xFFFF, $meta);
 			}else{
-				$item = self::get($b[0] & 0xFFFF, $meta);
+				$item = self::get(0, 0);
 			}
 
 			return $item;

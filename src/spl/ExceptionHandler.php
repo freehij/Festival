@@ -25,7 +25,7 @@ abstract class ExceptionHandler{
 	 * @return \Exception
 	 */
 	public static function handler($errno, $errstr, $errfile, $errline){
-		return false; //TODO remove later
+		//return false; //TODO remove later
 		
 		if(\error_reporting() === 0){
 			return \false;

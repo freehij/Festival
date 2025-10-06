@@ -1,23 +1,6 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
+
 
 /**
  * All Level related classes are here, like Generators, Populators, Noise, ...
@@ -1470,25 +1453,26 @@ class Level implements ChunkManager, Metadatable{
 					$ev->setCancelled();
 				}
 			}
+
 			$this->server->getPluginManager()->callEvent($ev);
 			if($ev->isCancelled()){
 				return \false;
 			}
 
-			$breakTime = $player->isCreative() ? 0.15 : $target->getBreakTime($item);
-			if($player->hasEffect(Effect::SWIFTNESS)){
-				$breakTime *= 0.80 * ($player->getEffect(Effect::SWIFTNESS)->getAmplifier() + 1);
+			if(Server::$breakTimeValidation){
+				$breakTime = $player->isCreative() ? 0.15 : $target->getBreakTime($item);
+				if($player->hasEffect(Effect::SWIFTNESS)){
+					$breakTime *= 0.80 * ($player->getEffect(Effect::SWIFTNESS)->getAmplifier() + 1);
+				}
+				if(!$ev->getInstaBreak() and ($player->lastBreak + $breakTime) >= \microtime(\true)){
+					return \false;
+				}
+				$player->lastBreak = \PHP_INT_MAX;
 			}
-
-			if(!$ev->getInstaBreak() and ($player->lastBreak + $breakTime) >= \microtime(\true)){
-				return \false;
-			}
-
-			$player->lastBreak = \PHP_INT_MAX;
 
 			$drops = $ev->getDrops();
 
-		}elseif($item !== \null and !$target->isBreakable($item)){
+		}elseif(Server::$breakTimeValidation and $item !== \null and !$target->isBreakable($item)){
 			return \false;
 		}else{
 			$drops = $target->getDrops($item); //Fixes tile entities being deleted before getting drops

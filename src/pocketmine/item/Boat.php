@@ -13,18 +13,17 @@ use pocketmine\nbt\tag\FloatTag;
 use pocketmine\entity\Boat as BoatEntity;
 
 class Boat extends Item{
-  public function __construct($meta = 0, $count = 1){
+	public function __construct($meta = 0, $count = 1){
 		parent::__construct(333, $meta, $count, "Boat");
 	}
 
-  public function canBeActivated(){
-    return true;
-  }
+	public function canBeActivated(){
+		return true;
+	}
 
-  public function onActivate(Level $level, Player $player, Block $block, Block $target, $face, $fx, $fy, $fz){
-    $realPos = $block->getSide($face);
-
-    $boat = new BoatEntity($player->getLevel()->getChunk($realPos->getX() >> 4, $realPos->getZ() >> 4), new CompoundTag("", [
+	public function onActivate(Level $level, Player $player, Block $block, Block $target, $face, $fx, $fy, $fz){
+		$realPos = $block->getSide($face);
+		$boat = new BoatEntity($player->getLevel()->getChunk($realPos->getX() >> 4, $realPos->getZ() >> 4), new CompoundTag("", [
   			"Pos" => new EnumTag("Pos", [
   				new DoubleTag("", $realPos->getX()),
   				new DoubleTag("", $realPos->getY()),
@@ -39,21 +38,21 @@ class Boat extends Item{
   				new FloatTag("", 0),
   				new FloatTag("", 0)
   			]),
-  	]));
-    $boat->spawnToAll();
-	
-	if(!$player->isCreative()){
-		 $item = $player->getInventory()->getItemInHand();
-		$count = $item->getCount();
-		if(--$count <= 0){
-		  $player->getInventory()->setItemInHand(Item::get(Item::AIR));
-		  return;
-		}
+		]));
+		$boat->spawnToAll();
+		
+		if(!$player->isCreative()){
+			 $item = $player->getInventory()->getItemInHand();
+			$count = $item->getCount();
+			if(--$count <= 0){
+			  $player->getInventory()->setItemInHand(Item::get(Item::AIR));
+			  return;
+			}
 
-		$item->setCount($count);
-		$player->getInventory()->setItemInHand($item);
+			$item->setCount($count);
+			$player->getInventory()->setItemInHand($item);
+		}
+		
+		 return true;
 	}
-   
-    return true;
-  }
 }

@@ -12,9 +12,9 @@ class reserved6 extends Solid{
 
 	}
 
-    public function getBreakTime(Item $item){
-        return 0;
-    }
+	public function getBreakTime(Item $item){
+		return 0;
+	}
 
 	public function getName(){
 		return "reserved6";

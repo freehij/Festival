@@ -1,23 +1,6 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
+
 
 /**
  * PocketMine-MP is the Minecraft: PE multiplayer server software
@@ -61,6 +44,8 @@ use pocketmine\entity\Bat;
 use pocketmine\entity\CaveSpider;
 use pocketmine\entity\MagmaCube;
 use pocketmine\entity\Silverfish;
+use pocketmine\entity\Ghast;
+use pocketmine\entity\Fireball;
 use pocketmine\event\HandlerList;
 use pocketmine\event\level\LevelInitEvent;
 use pocketmine\event\level\LevelLoadEvent;
@@ -100,6 +85,7 @@ use pocketmine\network\CompressBatchedTask;
 use pocketmine\network\Network;
 use pocketmine\network\protocol\BatchPacket;
 use pocketmine\network\protocol\DataPacket;
+use pocketmine\entity\projectile\FishingHook;
 use pocketmine\network\query\QueryHandler;
 use pocketmine\network\RakLibInterface;
 use pocketmine\network\rcon\RCON;
@@ -113,6 +99,7 @@ use pocketmine\plugin\PluginLoadOrder;
 use pocketmine\plugin\PluginManager;
 use pocketmine\plugin\ScriptPluginLoader;
 use pocketmine\scheduler\FileWriteTask;
+use pocketmine\scheduler\SendToDiscordTask;
 use pocketmine\scheduler\ServerScheduler;
 use pocketmine\tile\Chest;
 use pocketmine\tile\Furnace;
@@ -128,6 +115,70 @@ use pocketmine\utils\TextFormat;
 use pocketmine\utils\TextWrapper;
 use pocketmine\utils\Utils;
 use pocketmine\utils\VersionString;
+use pocketmine\event\TextContainer;
+
+use function array_key_exists;
+use function array_shift;
+use function array_sum;
+use function asort;
+use function base64_encode;
+use function class_exists;
+use function pocketmine\cleanPath;
+use function cli_set_process_title;
+use function count;
+use function define;
+use function explode;
+use function extension_loaded;
+use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
+use function floor;
+use function function_exists;
+use function gc_collect_cycles;
+use function getmypid;
+use function getopt;
+use function pocketmine\getTrace;
+use function implode;
+use function ini_set;
+use function is_array;
+use function is_bool;
+use function is_subclass_of;
+use function kill;
+use function max;
+use function microtime;
+use function min;
+use function mkdir;
+use function pcntl_signal;
+use function pcntl_signal_dispatch;
+use function realpath;
+use function register_shutdown_function;
+use function rename;
+use function round;
+use function spl_object_hash;
+use function str_replace;
+use function stripos;
+use function strlen;
+use function strpos;
+use function strtolower;
+use function substr;
+use function time;
+use function time_sleep_until;
+use function touch;
+use function trim;
+use function unlink;
+use function unpack;
+use function zlib_encode;
+use const DIRECTORY_SEPARATOR;
+use const E_ERROR;
+use const E_USER_ERROR;
+use const E_USER_WARNING;
+use const E_WARNING;
+use const PHP_INT_MAX;
+use const PHP_INT_SIZE;
+use const SIGHUP;
+use const SIGINT;
+use const SIGTERM;
+use const ZLIB_ENCODING_DEFLATE;
 
 /**
  * The class that manages everything
@@ -135,9 +186,13 @@ use pocketmine\utils\VersionString;
 class Server{
 	const BROADCAST_CHANNEL_ADMINISTRATIVE = "pocketmine.broadcast.admin";
 	const BROADCAST_CHANNEL_USERS = "pocketmine.broadcast.user";
-	
+
 	public static $mainmenuinfo = "0.11.1";
-	
+	public static $enableDiscordWebhook = false;
+	public static $discordWebhookLink = "";
+	public static $webhookName = "Festival Chat";
+	public static $breakTimeValidation = true;
+
 	/** @var Server */
 	private static $instance = \null;
 
@@ -554,7 +609,7 @@ class Server{
 	public function getMotd(){
 		return $this->getExtraProperty("network-improvements.server-motd", "Minecraft: PE Server");
 	}
-	
+
 	/**
 	 * @return string
 	 */
@@ -1094,6 +1149,7 @@ class Server{
 			return \false;
 		}
 
+
 		$this->levels[$level->getId()] = $level;
 
 		$level->initLevel();
@@ -1623,7 +1679,13 @@ class Server{
 			"rcon.password" => \substr(\base64_encode(@Utils::getRandomBytes(20, \false)), 3, 10),
 			"auto-save" => \true,
 		]);
-		NetherReactor::$enableReactor = $this->getExtraProperty("level-improvements.enable-reactor", \false);
+
+		$url = $this->getExtraProperty("other.discord-webhook-link");
+		Server::$enableDiscordWebhook = is_string($url) && strlen($url) > 0;
+		Server::$discordWebhookLink = $url;
+		Server::$webhookName = $this->getExtraProperty("other.discord-webhook-name");
+		Server::$breakTimeValidation = $this->getExtraProperty("other.enable-break-time-validation", Server::$breakTimeValidation);
+		NetherReactor::$enableReactor = $this->getExtraProperty("level-improvements.enable-reactor", false);
 		Server::$mainmenuinfo = $this->getExtraProperty("network-improvements.main-menu-info", MINECRAFT_VERSION_NETWORK);
 		$this->forceLanguage = $this->getProperty("settings.force-language", \false);
 		$this->baseLang = new BaseLang($this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE));
@@ -1745,27 +1807,27 @@ class Server{
 		$this->pluginManager->registerInterface(ScriptPluginLoader::class);
 		try{
 			\register_shutdown_function([$this, "crashDump"]);
-	
+
 			$this->queryRegenerateTask = new QueryRegenerateEvent($this, 5);
-	
+
 			$this->network->registerInterface(new RakLibInterface($this));
-	
+
 			$this->pluginManager->loadPlugins($this->pluginPath);
-	
+
 			$this->enablePlugins(PluginLoadOrder::STARTUP);
-	
+
 			LevelProviderManager::addProvider($this, Anvil::class);
 			LevelProviderManager::addProvider($this, McRegion::class);
 			if(\extension_loaded("leveldb")){
 				$this->logger->debug($this->getLanguage()->translateString("pocketmine.debug.enable"));
 				LevelProviderManager::addProvider($this, LevelDB::class);
 			}
-	
-	
+
+
 			Generator::addGenerator(Flat::class, "flat");
 			Generator::addGenerator(Normal::class, "normal");
 			Generator::addGenerator(Normal::class, "default");
-	
+
 			foreach((array) $this->getProperty("worlds", []) as $name => $worldSetting){
 				if($this->loadLevel($name) === \false){
 					$seed = $this->getProperty("worlds.$name.seed", \time());
@@ -1778,11 +1840,11 @@ class Server{
 					}else{
 						$options = [];
 					}
-	
+
 					$this->generateLevel($name, $seed, $generator, $options);
 				}
 			}
-	
+
 			if($this->getDefaultLevel() === \null){
 				$default = $this->getConfigString("level-name", "world");
 				if(\trim($default) == ""){
@@ -1794,30 +1856,44 @@ class Server{
 					$seed = $this->getConfigInt("level-seed", \time());
 					$this->generateLevel($default, $seed === 0 ? \time() : $seed);
 				}
-	
+
 				$this->setDefaultLevel($this->getLevelByName($default));
 			}
-	
-	
+
+
 			$this->properties->save(\true);
-	
+
 			if(!($this->getDefaultLevel() instanceof Level)){
 				$this->getLogger()->emergency($this->getLanguage()->translateString("pocketmine.level.defaultError"));
 				$this->forceShutdown();
-	
+
 				return;
 			}
-	
+
 			if($this->getProperty("ticks-per.autosave", 6000) > 0){
 				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
 			}
-	
+
 			$this->enablePlugins(PluginLoadOrder::POSTWORLD);
-	
 			$this->start();
 		}catch(\Exception $e){
 			$this->exceptionHandler($e);
 		}
+	}
+
+	public function sendToDiscord($message){
+		if(!Server::$enableDiscordWebhook) return;
+		$params = [];
+		if ($message instanceof TextContainer) {
+			if ($message instanceof TranslationContainer) {
+				$params = $message->getParameters();
+			}
+			$message = $message->getText();
+		}
+
+		$message = $this->getLanguage()->translateString($message, $params);
+		$message = TextFormat::clean($message);
+		$this->getScheduler()->scheduleAsyncTask(new SendToDiscordTask($message));
 	}
 
 	/**
@@ -1826,9 +1902,14 @@ class Server{
 	 *
 	 * @return int
 	 */
-	public function broadcastMessage($message, $recipients = \null){
-		if(!\is_array($recipients)){
-			return $this->broadcast($message, self::BROADCAST_CHANNEL_USERS);
+
+	public function broadcastMessage($message, $recipients = null, $discord = false){
+		if($discord){
+			$this->sendToDiscord($message);
+		}
+
+		if(!is_array($recipients)){
+			return $this->broadcast($message, self::BROADCAST_CHANNEL_USERS, discord: false);
 		}
 
 		/** @var Player[] $recipients */
@@ -1864,7 +1945,7 @@ class Server{
 
 		return \count($recipients);
 	}
-	
+
 	/**
 	 * @param string        $popup
 	 * @param Player[]|null $recipients
@@ -1882,7 +1963,7 @@ class Server{
 				}
 			}
 		}
-		
+
 		/** @var Player[] $recipients */
 		foreach($recipients as $recipient){
 			$recipient->sendPopup($popup);
@@ -1897,7 +1978,10 @@ class Server{
 	 *
 	 * @return int
 	 */
-	public function broadcast($message, $permissions){
+	public function broadcast($message, $permissions, $discord = false){
+		if($discord){
+			$this->sendToDiscord($message);
+		}
 		/** @var CommandSender[] $recipients */
 		$recipients = [];
 		foreach(\explode(";", $permissions) as $permission){
@@ -2120,8 +2204,8 @@ class Server{
 		}
 
 		try{
-			$this->hasStopped = \true;
-
+			$this->hasStopped = true;
+			$this->sendToDiscord("[INFO] Stopping server...");
 			$this->shutdown();
 			if($this->rcon instanceof RCON){
 				$this->rcon->stop();
@@ -2158,7 +2242,7 @@ class Server{
 			$this->console->kill();
 			$this->console->notify();
 			unset($this->console);
-			
+
 			$this->getLogger()->debug("Stopping network interfaces");
 			foreach($this->network->getInterfaces() as $interface){
 				$interface->shutdown();
@@ -2169,8 +2253,9 @@ class Server{
 
 			\gc_collect_cycles();
 		}catch(\Exception $e){
+			$this->logger->logException($e);
 			$this->logger->emergency("Crashed while crashing, killing process");
-			@kill(\getmypid());
+			@\pocketmine\kill(\getmypid());
 		}
 
 	}
@@ -2207,7 +2292,8 @@ class Server{
 
 		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.defaultGameMode", [self::getGamemodeString($this->getGamemode())]));
 
-		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.startFinished", [\round(\microtime(\true) - \pocketmine\START_TIME, 3)]));
+		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.startFinished", [round(microtime(true) - \pocketmine\START_TIME, 3)]));
+		$this->sendToDiscord("[INFO] Starting Minecraft PE server version v0.11.x alpha");
 
 		$this->tickProcessor();
 		$this->forceShutdown();
@@ -2416,7 +2502,7 @@ class Server{
 		}
 
 		$d = Utils::getRealMemoryUsage();
-		
+
 		$u = Utils::getMemoryUsage(\true);
 		$usage = \round(($u[0] / 1024) / 1024, 2) . "/" . \round(($d[0] / 1024) / 1024, 2) . "/" . \round(($u[1] / 1024) / 1024, 2) . "/".\round(($u[2] / 1024) / 1024, 2)." MB @ " . Utils::getThreadCount() . " threads";
 
@@ -2570,7 +2656,7 @@ class Server{
 		Entity::registerEntity(Cow::class);
 		Entity::registerEntity(Wolf::class);
 		Entity::registerEntity(Mooshroom::class);
-		
+
 		Entity::registerEntity(Arrow::class);
 		Entity::registerEntity(Boat::class);
 		Entity::registerEntity(DroppedItem::class);
@@ -2583,7 +2669,9 @@ class Server{
 		Entity::registerEntity(Squid::class);
 		Entity::registerEntity(CaveSpider::class);
 		Entity::registerEntity(MagmaCube::class);
-		
+		Entity::registerEntity(Ghast::class);
+		Entity::registerEntity(Fireball::class);
+
 		Entity::registerEntity(Spider::class);
 		Entity::registerEntity(Creeper::class);
 		Entity::registerEntity(Skeleton::class);
@@ -2592,7 +2680,8 @@ class Server{
 		Entity::registerEntity(Enderman::class);
 		Entity::registerEntity(Silverfish::class);
 		Entity::registerEntity(Bat::class);
-		
+
+        Entity::registerEntity(FishingHook::class, \true);
 		Entity::registerEntity(Human::class, \true);
 	}
 
