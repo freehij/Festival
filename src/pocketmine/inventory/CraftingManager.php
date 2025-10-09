@@ -219,6 +219,7 @@ class CraftingManager{
 
 		$this->registerRecipe((new ShapelessRecipe(Item::get(Item::FLINT_AND_STEEL, 0, 1)))->addIngredient(Item::get(Item::IRON_INGOT, 0, 1))->addIngredient(Item::get(Item::FLINT, 0, 1)));
 		$this->registerRecipe((new ShapelessRecipe(Item::get(Item::SHEARS, 0, 1)))->addIngredient(Item::get(Item::IRON_INGOT, 0, 2)));
+		$this->registerRecipe((new ShapelessRecipe(Item::get(Item::FISHING_ROD, 0, 1)))->addIngredient(Item::get(Item::STRING, 0, 2))->addIngredient(Item::get(Item::STICK, 0, 3)));
 	}
 
 	protected function registerDyes(){

@@ -2148,7 +2148,10 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 						} else {
 							$snowball->spawnToAll();
 						}
-					} elseif ($item->getId() === Item::EGG) {}
+					} elseif ($item->getId() === Item::FISHING_ROD) {
+						//TODO durability stuff
+						//TODO entity
+					}
 
 					$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, true);
 					$this->startAction = $this->server->getTick();

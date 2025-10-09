@@ -309,7 +309,7 @@ class Item{
 	const SLIMEBALL = 341;
 	const EGG = 344;
 	const COMPASS = 345;
-	//const FISHING_ROD = 346;
+	const FISHING_ROD = 346;
 	const CLOCK = 347;
 	const GLOWSTONE_DUST = 348;
 	const RAW_FISH = 349;
@@ -367,6 +367,8 @@ class Item{
 		if(self::$list === \null){
 			self::$list = new \SplFixedArray(65536);
 			
+			self::$list[self::FISHING_ROD] = FishingRod::class;
+			//TODO compass
 			self::$list[self::EGG] = Egg::class;
 			self::$list[self::SUGARCANE] = Sugarcane::class;
 			self::$list[self::WHEAT_SEEDS] = WheatSeeds::class;
@@ -693,7 +695,7 @@ class Item{
 		self::addCreativeItem(Item::get(Item::BUCKET, 10));
 		self::addCreativeItem(Item::get(Item::TNT, 0));
 		self::addCreativeItem(Item::get(Item::BOW, 0));
-		//self::addCreativeItem(Item::get(Item::FISHING_ROD, 0));
+		self::addCreativeItem(Item::get(Item::FISHING_ROD, 0));
 		self::addCreativeItem(Item::get(Item::FLINT_AND_STEEL, 0));
 		self::addCreativeItem(Item::get(Item::SHEARS, 0));
 		self::addCreativeItem(Item::get(Item::CLOCK, 0));
