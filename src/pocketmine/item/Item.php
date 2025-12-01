@@ -293,6 +293,7 @@ class Item{
 	const WOODEN_DOOR = 324;
 	const BUCKET = 325;
 	const MINECART = 328;
+	const SADDLE = 329;
 	const IRON_DOOR = 330;
 	const REDSTONE = 331;
 	const REDSTONE_DUST = 331;
@@ -367,8 +368,43 @@ class Item{
 		if(self::$list === \null){
 			self::$list = new \SplFixedArray(65536);
 			
+			self::$list[self::ARROW] = Arrow::class;
+			self::$list[self::STRING] = StringItem::class;
+			self::$list[self::GUNPOWDER] = Gunpowder::class;
+			self::$list[self::WHEAT] = Wheat::class;
+			self::$list[self::BREAD] = Bread::class;
+			self::$list[self::FLINT] = Flint::class;
+			self::$list[self::RAW_PORKCHOP] = RawPorkchop::class;
+			self::$list[self::COOKED_PORKCHOP] = CookedPorkchop::class;
+			self::$list[self::MINECART] = MinecartItem::class;
+			self::$list[self::SADDLE] = Saddle::class;
+			self::$list[self::REDSTONE_DUST] = RedstoneDust::class;
+			self::$list[self::LEATHER] = Leather::class;
+			self::$list[self::CLAY] = Clayball::class;
+			self::$list[self::PAPER] = Paper::class;
+			self::$list[self::BOOK] = Book::class;
+			self::$list[self::SLIMEBALL] = Slimeball::class;
+			self::$list[self::COMPASS] = Compass::class;
+			self::$list[self::CLOCK] = Clock::class;
+			self::$list[self::GLOWSTONE_DUST] = GlowstoneDust::class;
+			self::$list[self::DYE] = Dye::class;
+			self::$list[self::BONE] = Bone::class;
+			self::$list[self::SUGAR] = Sugar::class;
+			self::$list[self::COOKIE] = Cookie::class;
+			self::$list[self::MELON] = MelonSlice::class;
+			self::$list[self::RAW_BEEF] = RawBeef::class;
+			self::$list[self::STEAK] = Steak::class;
+			self::$list[self::RAW_CHICKEN] = RawChicken::class;
+			self::$list[self::COOKED_CHICKEN] = CookedChicken::class;
+			self::$list[self::EMERALD] = Emerald::class;
+			self::$list[self::BAKED_POTATO] = BakedPotato::class;
+			self::$list[self::PUMPKIN_PIE] = PumpkinPie::class;
+			self::$list[self::NETHER_BRICK] = NetherBrick::class;
+			self::$list[self::QUARTZ] = Quartz::class;
+			self::$list[self::BEETROOT] = Beetroot::class;
+			
+			
 			self::$list[self::FISHING_ROD] = FishingRod::class;
-			//TODO compass
 			self::$list[self::EGG] = Egg::class;
 			self::$list[self::SUGARCANE] = Sugarcane::class;
 			self::$list[self::WHEAT_SEEDS] = WheatSeeds::class;
