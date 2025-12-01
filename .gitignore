@@ -18,6 +18,7 @@ cachegrind.*
 .idea/codeStyles/
 .idea/fileTemplates/
 nbproject/*
+*.swp
 
 ############
 ## Windows
